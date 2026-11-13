@@ -231,6 +231,12 @@ func Relay(c *gin.Context, relayFormat types.RelayFormat) {
 			newAPIError = billingErr
 			break
 		}
+		if relayInfo.TieredBillingSnapshot == nil {
+			if billingErr := service.PrepareChannelBilling(c, relayInfo, relayInfo.PriceData.QuotaToPreConsume); billingErr != nil {
+				newAPIError = billingErr
+				break
+			}
+		}
 
 		bodyStorage, bodyErr := common.GetBodyStorage(c)
 		if bodyErr != nil {

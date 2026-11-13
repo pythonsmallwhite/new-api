@@ -65,7 +65,13 @@ func PrepareRequestBilling(c *gin.Context, info *relaycommon.RelayInfo) *types.N
 		logger.LogInfo(c, common.LogText("model %s is free, skipping pre-consume", info.OriginModelName))
 		return nil
 	}
-	return service.PreConsumeBilling(c, priceData.QuotaToPreConsume, info)
+	if info.TieredBillingSnapshot != nil {
+		return nil
+	}
+	if _, ok := common.GetContextKeyType[float64](c, constant.ContextKeyChannelCostMultiplier); !ok {
+		return nil
+	}
+	return service.PrepareChannelBilling(c, info, priceData.QuotaToPreConsume)
 }
 
 // RefundFailedRequestBilling applies the common final-failure policy after all

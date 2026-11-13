@@ -315,6 +315,11 @@ func RecalculateTaskQuota(ctx context.Context, task *model.Task, actualQuota int
 	if actualQuota < 0 {
 		return
 	}
+	var multiplierClamp *common.QuotaClamp
+	actualQuota, multiplierClamp = scaleTaskBillingQuota(task, actualQuota)
+	if multiplierClamp != nil {
+		clamps = append(clamps, multiplierClamp)
+	}
 	preConsumedQuota := task.Quota
 	quotaDelta := actualQuota - preConsumedQuota
 
@@ -378,6 +383,14 @@ func RecalculateTaskQuota(ctx context.Context, task *model.Task, actualQuota int
 		Other:     other,
 		NodeName:  task.PrivateData.NodeName,
 	})
+}
+
+func scaleTaskBillingQuota(task *model.Task, quota int) (int, *common.QuotaClamp) {
+	if task == nil || quota <= 0 {
+		return quota, nil
+	}
+	multiplier := ChannelBillingMultiplierForChannel(task.ChannelId, taskModelName(task))
+	return common.QuotaFromFloatChecked(float64(quota) * multiplier)
 }
 
 // RecalculateTaskQuotaByTokens 根据实际 token 消耗重新计费（异步差额结算）。

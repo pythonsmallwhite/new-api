@@ -211,6 +211,7 @@ func RelaySwapFace(c *gin.Context, info *relaycommon.RelayInfo) *dto.MidjourneyR
 			Description: err.Error(),
 		}
 	}
+	priceData.Quota = service.ScaleChannelBillingQuota(c, info, priceData.Quota)
 
 	userQuota, err := model.GetUserQuota(info.UserId, false)
 	if err != nil {
@@ -534,6 +535,7 @@ func RelayMidjourneySubmit(c *gin.Context, relayInfo *relaycommon.RelayInfo) *dt
 			Description: err.Error(),
 		}
 	}
+	priceData.Quota = service.ScaleChannelBillingQuota(c, relayInfo, priceData.Quota)
 
 	userQuota, err := model.GetUserQuota(relayInfo.UserId, false)
 	if err != nil {
